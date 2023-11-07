@@ -1,0 +1,250 @@
+{
+
+  "openapi": "3.0.0",
+
+  "info": {
+    "title": "Supabase API",
+    "description": "API for managing users, trips, and travel buddies using Supabase",
+    "version": "1.0.0"
+  },
+
+  "paths": {
+
+
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "responses": {
+          "200": {
+            "description": "A list of all the users with its details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example" : 
+                    {
+                      user_id: "7f54869a-2d92-4b61-a4a2-888e41ec7c05",
+                      name: "John Doe",
+                      email: "john@example.com"
+                    },
+                    {
+                      user_id: "b84c3d20-0071-49b0-b7ca-9e9408ecf676",
+                      name: "Jane Smith",
+                      email: "jane@example.com"
+                    },
+                    {
+                      user_id: "2f8c8f92-2ad4-463d-9c3a-0b42b693f67e",
+                      name: "Alice Johnson",
+                      email: "alice@example.com"
+                    },
+                    {
+                      user_id: "87e3eb9d-0e16-4b5c-9ca3-7a19915c9c61",
+                      name: "Bob Brown",
+                      email: "bob@example.com"
+                    } 
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+
+    "/trips": {
+      "get": {
+        "summary": "Get all trips",
+        "responses": {
+          "200": {
+            "description": "A list of all the trips with its details", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example" : 
+                    {
+                      trip_id: 1e46a591-2384-457c-8ad6-205f31d2d0c5,
+                      name: Summer Beach,
+                      destination: Hawaii,
+                      start_date: 2023-07-15,
+                      end_date: 2023-07-25
+                    },
+                    {
+                      trip_id: 10dbb512-7e3e-4b75-900b-4c0629eefb7f,
+                      name: Ski Trip,
+                      destination: Colorado,
+                      start_date: 2023-12-05,
+                      end_date: 2023-12-15
+                    },
+                    {
+                      trip_id: d37b0e62-0e41-42b2-b6e5-c537ca363a2c,
+                      name: Europe Tour,
+                      destination: Multiple Cities,
+                      start_date: 2024-04-01,
+                      end_date: 2024-04-15
+                    },
+                    {
+                      trip_id: 3e164b3e-18b9-4e12-91c9-93505f9d7676,
+                      name: Road Trip,
+                      destination: Route 66 USA,
+                      start_date: 2023-09-10,
+                      end_date: 2023-09-20
+                    }                  
+                  
+                  
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+
+
+    "/user/{id}": {
+      "get": {
+        "summary": "Get user details by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format" : "uuid",
+              "description": "It is of uuid format "
+            },                    
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "example" : 
+            {
+              user_id: "b84c3d20-0071-49b0-b7ca-9e9408ecf676"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A detail of the user with matching user_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example" :
+                    {
+                      user_id: "b84c3d20-0071-49b0-b7ca-9e9408ecf676",
+                      name: "Jane Smith",
+                      email: "jane@example.com"
+                    }                  
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+
+    "/trip/{id}": {
+      "get": {
+        "summary": "Get trip details by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format" : "uuid",
+              "description": "It is of uuid format "
+            },          
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "example" : 
+            {
+              trip_id: 3e164b3e-18b9-4e12-91c9-93505f9d7676            
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A detail of the trip with matching trip_id", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example":
+                    {
+                      trip_id: 3e164b3e-18b9-4e12-91c9-93505f9d7676,
+                      name: Road Trip,
+                      destination: Route 66 USA,
+                      start_date: 2023-09-10,
+                      end_date: 2023-09-20
+                    }              
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+
+
+    "/user/{id}/travel-buddies": {
+      "get": {
+        "summary": "Get a list of travel buddies(going on same trips with the provided user) for a user by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format" : "uuid",
+              "description": "It is of uuid format "
+            },
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "example": 
+              {
+              user_id: b84c3d20-0071-49b0-b7ca-9e9408ecf676  
+              }
+          }
+        ], 
+        [
+          {
+            "schema": {
+              "type": "array",
+              "format" : "uuid",
+              "description": "It is of uuid format "
+            },
+            "name": "trip_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of user_id's which are travel buddies of the provided user_id", 
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": 
+    
+                    {
+                    user_id: 7f54869a-2d92-4b61-a4a2-888e41ec7c05
+                    },
+                    {
+                    user_id: 87e3eb9d-0e16-4b5c-9ca3-7a19915c9c61
+                    }
+
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+  
+
+
