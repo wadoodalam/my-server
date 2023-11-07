@@ -59,33 +59,7 @@ app.get('/trip/:id', async (req, res) => {
     res.json(trip);
 });
 
-// GET /user/:id/travel-buddies
-app.get('/user/:id/travel-buddies', async (req, res) => {
-    const userId = req.params.id;
 
-    // Find all trips (trip_ids) that the user with the given userId is traveling on
-    const userTrips = await UserTrips.find({ user_id: userId });
-    const tripIds = userTrips.map((userTrip) => userTrip.trip_id);
-
-    if (tripIds.length === 0) {
-        // If the user is not traveling on any trips, return an empty array
-        res.json([]);
-    } else {
-        // Find all other user_ids traveling on the same trips as the given user_id
-        const otherUserTrips = await UserTrips.find({ trip_id: { $in: tripIds }, user_id: { $ne: userId } });
-        const travelBuddyIds = otherUserTrips.map((userTrip) => userTrip.user_id);
-
-        if (travelBuddyIds.length === 0) {
-            // If there are no travel buddies, return an empty array
-            res.json([]);
-        } else {
-            // Find user details for the travel buddies
-            const travelBuddies = await User.find({ _id: { $in: travelBuddyIds } });
-            res.json(travelBuddies);
-        }
-    }
-   
-});
 
 
 
