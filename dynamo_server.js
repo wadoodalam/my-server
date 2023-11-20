@@ -5,10 +5,10 @@ const { v4: uuidv4 } = require('uuid');
 
 AWS.config.update({
     region: 'us-east-2', 
-    // AKIAXNVZZ3THVCT5B3K5
-    accessKeyId: 'AKIAXNVZZ3THVCT5B3K5', // hidden id
-    // EHXzi3DP4J8KMF7beNPdQUxZm8zsIMcLmw7oD2Zp
-    secretAccessKey: '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'// hidden key,
+    // 
+    accessKeyId: '', // hidden id
+    // 
+    secretAccessKey: ''// hidden key,
 });
 
 
