@@ -1,3 +1,4 @@
+
 const express = require('express');
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
@@ -17,7 +18,7 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 const app = express();
 app.use(express.json());
 
-// Example: GET /users
+// GET /users
 app.get('/users', (req, res) => {
     const params = {
         TableName: 'Users',
@@ -31,7 +32,7 @@ app.get('/users', (req, res) => {
         }
     });
 });
-
+// GET /trips
 app.get('/trips', (req, res) => {
     const params = {
         TableName: 'Trips',
@@ -46,6 +47,45 @@ app.get('/trips', (req, res) => {
     });
 });
 
+// GET /user/{id}
+app.get('/user/:id', async (req, res) => {
+    const userId = req.params.id;
+
+    const params = {
+        TableName: 'Users',
+        Key: { user_id:  userId  }, // Assuming user_id is of type String (S)
+    };
+
+    dynamodb.get(params, function(err, data) {
+        if (err) {
+          console.log("Error", err);
+          res.status(500).json({ error: 'Error fetching specific user.' });
+        } else {
+          //console.log("Success", data.Item);
+          res.json(data.Item);
+        }
+      });
+});
+
+// GET /trip/{id}
+app.get('/trip/:id', async (req, res) => {
+    const tripID = req.params.id;
+
+    const params = {
+        TableName: 'Trips',
+        Key: { trip_id:  tripID  }, // Assuming user_id is of type String (S)
+    };
+
+    dynamodb.get(params, function(err, data) {
+        if (err) {
+          console.log("Error", err);
+          res.status(500).json({ error: 'Error fetching specific user.' });
+        } else {
+          //console.log("Success", data.Item);
+          res.json(data.Item);
+        }
+      });
+});
 
 // Start the server
 const port = 3000;
