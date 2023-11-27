@@ -66,11 +66,12 @@ createTable(
 createTable(
     'UserTrips',
     [
-        { AttributeName: 'userTrips_id', KeyType: 'HASH' }, // Primary key: user_id
-     
+        { AttributeName: 'user_id', KeyType: 'HASH' }, // Partition key: user_id
+        { AttributeName: 'trip_id', KeyType: 'RANGE' }, // Sort key: trip_id
     ],
     [
-        { AttributeName: 'userTrips_id', AttributeType: 'S' }, // Attribute definition 
-        
+        { AttributeName: 'user_id', AttributeType: 'S' }, // Attribute definition for user_id
+        { AttributeName: 'trip_id', AttributeType: 'S' }, // Attribute definition for trip_id
     ]
 );
+

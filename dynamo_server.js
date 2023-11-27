@@ -87,6 +87,85 @@ app.get('/trip/:id', async (req, res) => {
       });
 });
 
+
+
+
+app.get('/user/:id/travel-buddies', async (req, res) => {
+    const userId = req.params.id;
+
+    try {
+        // Step 1: Get all trips for the given user
+        const userTripsParams = {
+            TableName: 'UserTrips',
+            KeyConditionExpression: 'user_id = :u',
+            ExpressionAttributeValues: {
+                ':u': userId,
+            },
+        };
+
+        dynamodb.query(userTripsParams, async (err, userTripsData) => {
+            if (err) {
+                console.error('Error fetching user trips:', err);
+                res.status(500).json({ error: 'Error fetching user trips.' });
+            } else {
+                try {
+                    const tripIds = userTripsData.Items.map((item) => item.trip_id);
+
+                    // Fetch users associated with each trip individually
+                    const usersOnTripsData = await Promise.all(
+                        tripIds.map(async (tripId) => {
+                            const params = {
+                                TableName: 'UserTrips',
+                                FilterExpression: 'trip_id = :t',
+                                ExpressionAttributeValues: {
+                                    ':t': tripId,
+                                },
+                            };
+                            try {
+                                const result = await dynamodb.scan(params).promise();
+                                return result.Items;
+                            } catch (error) {
+                                console.error('Error querying UserTrips:', error);
+                                throw error;
+                            }
+                        })
+                    );
+
+                    // Flatten the array of arrays into a single array of items
+                    const usersOnTrips = usersOnTripsData.flat();
+                    const travelBuddyIds = usersOnTrips
+                        .map((item) => item.user_id)
+                        .filter((id) => id !== userId);
+
+                    // Fetch details of travel buddies from the Users table
+                    if (travelBuddyIds.length > 0) {
+ 
+                        console.log("user_ids", travelBuddyIds)
+                        res.json(travelBuddyIds);
+                    } else {
+                        res.json([]); // If no travel buddies found
+                    }
+                } catch (error) {
+                    console.error('Error fetching travel buddies data:', error);
+                    res.status(500).json({ error: 'Error fetching travel buddies.' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching travel buddies:', error);
+        res.status(500).json({ error: 'Error fetching travel buddies.' });
+    }
+});
+
+
+
+
+
+
+
+
+
+
 // Start the server
 const port = 3000;
 app.listen(port, () => {
