@@ -1,11 +1,10 @@
 const AWS = require('aws-sdk');
+require("dotenv").config();
 
 AWS.config.update({
     region: 'us-east-2', 
-    // 
-    accessKeyId: '', // hidden id
-    // 
-    secretAccessKey: ''// hidden key,
+    accessKeyId: process.env.accessKeyId, // hidden id
+    secretAccessKey: process.env.secretAccessKey// hidden key,
 });
 
 

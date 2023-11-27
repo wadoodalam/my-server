@@ -2,14 +2,13 @@
 const express = require('express');
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+require("dotenv").config();
 
 
 AWS.config.update({
     region: 'us-east-2', 
-    // 
-    accessKeyId: '', // hidden id
-    // 
-    secretAccessKey: ''// hidden key,
+    accessKeyId: process.env.accessKeyId, // hidden id
+    secretAccessKey: process.env.secretAccessKey// hidden key,
 });
 
 
