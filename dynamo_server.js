@@ -1,7 +1,6 @@
 
 const express = require('express');
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 require("dotenv").config();
 
 
@@ -14,11 +13,11 @@ AWS.config.update({
 
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
-const app = express();
-app.use(express.json());
+const router = express();
+router.use(express.json());
 
 // GET /users
-app.get('/users', (req, res) => {
+router.get('/users', (req, res) => {
     const params = {
         TableName: 'Users',
     };
@@ -32,7 +31,7 @@ app.get('/users', (req, res) => {
     });
 });
 // GET /trips
-app.get('/trips', (req, res) => {
+router.get('/trips', (req, res) => {
     const params = {
         TableName: 'Trips',
     };
@@ -47,12 +46,12 @@ app.get('/trips', (req, res) => {
 });
 
 // GET /user/{id}
-app.get('/user/:id', async (req, res) => {
+router.get('/user/:id', async (req, res) => {
     const userId = req.params.id;
 
     const params = {
         TableName: 'Users',
-        Key: { user_id:  userId  }, // Assuming user_id is of type String (S)
+        Key: { user_id:  userId  }, 
     };
 
     dynamodb.get(params, function(err, data) {
@@ -67,12 +66,15 @@ app.get('/user/:id', async (req, res) => {
 });
 
 // GET /trip/{id}
-app.get('/trip/:id', async (req, res) => {
+router.get('/trip/:id', fetchTripByID)
+
+
+async function fetchTripByID(req,res) {
     const tripID = req.params.id;
 
     const params = {
         TableName: 'Trips',
-        Key: { trip_id:  tripID  }, // Assuming user_id is of type String (S)
+        Key: { trip_id:  tripID  }, 
     };
 
     dynamodb.get(params, function(err, data) {
@@ -84,12 +86,12 @@ app.get('/trip/:id', async (req, res) => {
           res.json(data.Item);
         }
       });
-});
+};
 
 
 
 
-app.get('/user/:id/travel-buddies', async (req, res) => {
+router.get('/user/:id/travel-buddies', async (req, res) => {
     const userId = req.params.id;
 
     try {
@@ -167,6 +169,6 @@ app.get('/user/:id/travel-buddies', async (req, res) => {
 
 // Start the server
 const port = 3000;
-app.listen(port, () => {
+router.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
