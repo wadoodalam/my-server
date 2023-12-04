@@ -21,8 +21,10 @@ router.use(express.json());
 router.get('/users', fetchAllUsers)
 // GET /trips
 router.get('/trips', fetchAllTrips)
-
-
+// GET /user/:id
+router.get('/user/:id', fetchUserByID)
+// GET /trip/:id
+router.get('/TRIP/:id', fetchTripByID)
 
 async function fetchAllUsers (req, res) {
     const params = {
@@ -57,6 +59,45 @@ async function fetchAllTrips(req,res){
     }
 };
 
+async function fetchUserByID(req,res){
+    const userId = req.params.id;
+
+    const params = {
+        TableName: TABLE_NAME,
+        Key: {
+            PK: 'USER',
+            SK: `USER#${userId}`
+        }
+       
+    };
+    // using get here instead of query to avoid KeyConditionExpression error
+    try {
+        const data = await dynamodb.get(params).promise();
+        res.json(data.Item);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+async function fetchTripByID(req,res){
+    const tripId = req.params.id;
+
+    const params = {
+        TableName: TABLE_NAME,
+        Key: {
+            PK: 'TRIP',
+            SK: `TRIP#${tripId}`
+        }
+       
+    };
+    // using get here instead of query to avoid KeyConditionExpression error
+    try {
+        const data = await dynamodb.get(params).promise();
+        res.json(data.Item);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
 
 // Start the server
