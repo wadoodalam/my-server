@@ -22,6 +22,23 @@ const createTable = (tableName, keySchema, attributeDefinitions) => {
             ReadCapacityUnits: 5,
             WriteCapacityUnits: 5,
         },
+        // GSI Added to query using SK(needed for travel buddies)
+        GlobalSecondaryIndexes: [
+            {
+                IndexName: 'TripIndex',
+                KeySchema: [
+                    { AttributeName: 'SK', KeyType: 'HASH' }, // GSI partition key: trip_id
+                    { AttributeName: 'PK', KeyType: 'RANGE' }, // GSI sort key: user_id
+                ],
+                Projection: {
+                    ProjectionType: 'KEYS_ONLY', // Change as needed (ALL, KEYS_ONLY, INCLUDE)
+                },
+                ProvisionedThroughput: {
+                    ReadCapacityUnits: 5,
+                    WriteCapacityUnits: 5,
+                },
+            },
+        ],        
     };
 
     dynamodb.createTable(params, (err, data) => {

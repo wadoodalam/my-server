@@ -24,7 +24,11 @@ router.get('/trips', fetchAllTrips)
 // GET /user/:id
 router.get('/user/:id', fetchUserByID)
 // GET /trip/:id
-router.get('/TRIP/:id', fetchTripByID)
+router.get('/trip/:id', fetchTripByID)
+// GET /user/:id/travel-buddies
+router.get('/user/:id/travel-buddies',fetchTravelBuddies)
+
+
 
 async function fetchAllUsers (req, res) {
     const params = {
@@ -37,7 +41,8 @@ async function fetchAllUsers (req, res) {
 
     try {
         const data = await dynamodb.query(params).promise();
-        res.json(data.Items);
+        const userData = data.Items.map(item => item.Data);
+        res.json(userData);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -53,7 +58,8 @@ async function fetchAllTrips(req,res){
     }
     try {
         const data = await dynamodb.query(params).promise();
-        res.json(data.Items);
+        const tripData = data.Items.map(item=>item.Data);
+        res.json(tripData);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -73,7 +79,7 @@ async function fetchUserByID(req,res){
     // using get here instead of query to avoid KeyConditionExpression error
     try {
         const data = await dynamodb.get(params).promise();
-        res.json(data.Item);
+        res.json(data.Item.Data);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -93,64 +99,65 @@ async function fetchTripByID(req,res){
     // using get here instead of query to avoid KeyConditionExpression error
     try {
         const data = await dynamodb.get(params).promise();
-        res.json(data.Item);
+        res.json(data.Item.Data);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
-router.get('/user/:id/travel-buddies', async (req, res) => {
+async function fetchTravelBuddies(req, res){
     const userId = req.params.id;
 
     try {
-        // Get the user's trip IDs
-        const userTripParams = {
-            TableName: TABLE_NAME,
-            KeyConditionExpression: 'PK = :pk',
+        // Get all trip IDs associated with the user
+        const params = {
+            TableName: 'UserTripsSingleTable',
+            KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
             ExpressionAttributeValues: {
-                ':pk': `USER#${userId}`
-            }
+                ':pk': `USER#${userId}`,
+                ':sk': 'TRIP#'
+            },
+            ProjectionExpression: 'SK' // Retrieve trip IDs
         };
 
-        const userTripData = await dynamodb.query(userTripParams).promise();
-        const userTrips = userTripData.Items.filter(item => item.SK.startsWith('TRIP#'));
+        const userTripData = await dynamodb.query(params).promise();
+        const tripIds = userTripData.Items.map(item => item.SK.split('#')[1]);
 
-        // Get the trip IDs for the user
-        const tripIds = userTrips.map(trip => trip.SK.split('#')[1]);
-        console.log("Trips for the given user", tripIds);
+        // Get users associated with the same trips using the GSI
+        // need promise.all() b/c multiple trips(multiple queries), promise.all iis used for async
+        const travelBuddies = await Promise.all(
+            tripIds.map(async tripId => {
+                const buddiesParams = {
+                    TableName: 'UserTripsSingleTable',
+                    IndexName: 'TripIndex', // GSI name
+                    // cannot use <> for SK, hence need to remove the given id at the end
+                    KeyConditionExpression: 'SK = :sk AND begins_with(PK, :pk)',
+                    ExpressionAttributeValues: {
+                        ':sk': `TRIP#${tripId}`,
+                        ':pk': 'USER#'
+                    },
+                    ProjectionExpression: 'PK' // Retrieve user IDs
+                };
 
-        // Get users on the same trips as the given user
-        try {
-            const usersByTrips = await Promise.all(
-                tripIds.map(async (tripId) => {
-                    const params = {
-                        TableName: TABLE_NAME,
-                        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
-                        ExpressionAttributeValues: {
-                            ':pk': 'TRIP',
-                            ':sk': `TRIP#${tripId}`
-                        }
-                    };
-                    console.log("Params for batchGet:", params);
-
-                    const result = await dynamodb.query(params).promise();
-                    console.log("Users from trips:", result.Items);
-                    return result.Items.map(item => item.PK.split('#')[1]); // Retrieve PK as user ID
-                })
-            );
-
-            const userIDs = usersByTrips.flat();
-            console.log("Combined Users from trips:", userIDs);
-            res.json({ users: userIDs });
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
+                const buddiesData = await dynamodb.query(buddiesParams).promise();
+                // using map with Promise.all returns array of arrays
+                // splits the array by # and returns the second part of the array
+                return buddiesData.Items.map(item => item.PK.split('#')[1]);
+                
+            })
+        );
+        
+        // Flatten the nested array and removes the current id
+        const flat = travelBuddies.flat().filter(id => id != userId);
+        // remove duplicates using Set (as set only takes unique values)
+        const uniqueTravelBuddies = [...new Set(flat)]
+    
+        
+        res.json(uniqueTravelBuddies);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-});
-
-
+};
 
 
 
