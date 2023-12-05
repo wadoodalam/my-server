@@ -99,6 +99,74 @@ async function fetchTripByID(req,res){
     }
 };
 
+router.get('/user/:id/travel-buddies', async (req, res) => {
+    const userId = req.params.id;
+
+    try {
+        // Get the user's trip IDs
+        const userTripParams = {
+            TableName: TABLE_NAME,
+            KeyConditionExpression: 'PK = :pk',
+            ExpressionAttributeValues: {
+                ':pk': `USER#${userId}`
+            }
+        };
+
+        const userTripData = await dynamodb.query(userTripParams).promise();
+        const userTrips = userTripData.Items.filter(item => item.SK.startsWith('TRIP#'));
+
+        // Get the trip IDs for the user
+        const tripIds = userTrips.map(trip => trip.SK.split('#')[1]);
+        console.log("Trips for the given user", tripIds);
+
+        // Get users on the same trips as the given user
+        try {
+            const usersByTrips = await Promise.all(
+                tripIds.map(async (tripId) => {
+                    const params = {
+                        TableName: TABLE_NAME,
+                        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+                        ExpressionAttributeValues: {
+                            ':pk': 'TRIP',
+                            ':sk': `TRIP#${tripId}`
+                        }
+                    };
+                    console.log("Params for batchGet:", params);
+
+                    const result = await dynamodb.query(params).promise();
+                    console.log("Users from trips:", result.Items);
+                    return result.Items.map(item => item.PK.split('#')[1]); // Retrieve PK as user ID
+                })
+            );
+
+            const userIDs = usersByTrips.flat();
+            console.log("Combined Users from trips:", userIDs);
+            res.json({ users: userIDs });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Start the server
 const port = 3000;
