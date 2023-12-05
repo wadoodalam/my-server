@@ -22,41 +22,58 @@ db.once('open', () => console.log('Connected to MongoDB'));
 
 // Define API endpoints
 
-// Root route
-app.get('/', (req, res) => {
-    res.send('Welcome to Users and Trips Database.');
-});
+
 
 // GET /users
 app.get('/users', async (req, res) => {
     const users = await User.find();
-    res.json(users);
+    const formattedUsers = users.map(user => ({
+        user_id: user._id,
+        name: user.name,
+        email: user.email,
+    }));
+    res.json(formattedUsers);
 });
 
 // GET /trips
 app.get('/trips', async (req, res) => {
     const trips = await Trip.find();
-    res.json(trips);
+    const formattedTrips = trips.map(trip => ({
+        trip_id: trip._id,
+        name: trip.name,
+        destination: trip.destination,
+        start_date: trip.start_date,
+        end_date: trip.end_date,
+    }));
+    res.json(formattedTrips);
 });
 
-// GET /userTrips
-app.get('/userTrips', async (req, res) => {
-    const userTrips = await UserTrips.find();
-    res.json(userTrips);
-});
+
 
 // GET /user/:id
 app.get('/user/:id', async (req, res) => {
     const userId = req.params.id;
     const user = await User.findById(userId);
-    res.json(user);
+    const formattedUser = {
+        user_id: user._id,
+        name: user.name,
+        email: user.email,
+    };
+    res.json(formattedUser);
 });
 
 // GET /trip/:id
 app.get('/trip/:id', async (req, res) => {
     const tripId = req.params.id;
     const trip = await Trip.findById(tripId);
-    res.json(trip);
+    const formattedTrip = {
+        trip_id: trip._id,
+        name: trip.name,
+        destination: trip.destination,
+        start_date: trip.start_date,
+        end_date: trip.end_date,
+    };
+    res.json(formattedTrip);
 });
 
 
@@ -82,8 +99,7 @@ app.get('/user/:id/travel-buddies', async (req, res) => {
             res.json([]);
         } else {
             // Find user details for the travel buddies
-            const travelBuddies = await User.find({ _id: { $in: travelBuddyIds } });
-            res.json(travelBuddies);
+            res.json(travelBuddyIds);
         }
     }
    
