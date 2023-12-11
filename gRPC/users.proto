@@ -5,6 +5,7 @@ package users;
 service UserService {
   rpc GetUsers(Empty) returns (UserList) {}
   rpc GetUserById(UserRequest) returns (User) {}
+  rpc GetGPSData(Empty) returns (stream GPSData) {}
 }
 
 message Empty {}
@@ -23,3 +24,8 @@ message UserList {
   repeated User users = 1;
 }
 
+message GPSData {
+    string userId = 1;
+    float latitude = 2;
+    float longitude= 3;
+}
